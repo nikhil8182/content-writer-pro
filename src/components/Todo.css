@@ -1,0 +1,126 @@
+.todo-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.todo-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.todo-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.todo-filters button {
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.todo-filters button:hover {
+  background-color: #e0e0e0;
+}
+
+.todo-filters button.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background-color: #2ecc71;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-bottom: 20px;
+}
+
+.todo-list {
+  list-style: none;
+  padding: 0;
+}
+
+.todo-list li {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background-color 0.2s;
+}
+
+.todo-list li:hover {
+  background-color: #f9f9f9;
+}
+
+.todo-list li.completed .task-text {
+  text-decoration: line-through;
+  color: #95a5a6;
+}
+
+.todo-list input[type="checkbox"] {
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.task-text {
+  flex: 1;
+}
+
+.task-category {
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 10px;
+  font-weight: 500;
+}
+
+.task-category.ui {
+  background-color: #3498db;
+  color: white;
+}
+
+.task-category.platform {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.task-category.analytics {
+  background-color: #f39c12;
+  color: white;
+}
+
+.task-category.ai {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.task-category.advanced {
+  background-color: #e74c3c;
+  color: white;
+} 
