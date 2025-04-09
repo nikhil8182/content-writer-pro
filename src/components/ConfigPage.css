@@ -1,0 +1,90 @@
+/* 
+You can add the CSS rules from the ConfigPage.js comment block here 
+if you want to apply styling. 
+*/ 
+
+/* Config Page Styling */
+
+.config-page {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: sans-serif;
+}
+
+.config-page h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.instruction-section {
+  margin-bottom: 40px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.instruction-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.instruction-section p {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.instruction-section textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+  line-height: 1.4;
+  box-sizing: border-box; /* Include padding in width */
+  resize: vertical; /* Allow vertical resizing */
+}
+
+.button-group {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.button-group button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.button-group button:hover {
+  background-color: #0056b3;
+}
+
+.button-group .reset-button {
+  background-color: #6c757d;
+}
+
+.button-group .reset-button:hover {
+  background-color: #5a6268;
+}
+
+.status-message {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+}

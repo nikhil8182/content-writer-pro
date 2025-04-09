@@ -287,9 +287,72 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   line-height: 1.5;
-  white-space: pre-wrap;
   margin: 0;
   color: #34495e;
+}
+
+/* Markdown styling */
+.outline-content h1 {
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.outline-content h2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+}
+
+.outline-content h3 {
+  font-size: 1.1rem;
+  margin-top: 1.2rem;
+  margin-bottom: 0.6rem;
+  color: #34495e;
+}
+
+.outline-content ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.outline-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.outline-content li {
+  margin-bottom: 0.4rem;
+}
+
+.outline-content p {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.outline-content code {
+  background-color: #f2f2f2;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.outline-content pre {
+  background-color: #f8f8f8;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+}
+
+.outline-content blockquote {
+  border-left: 3px solid #3498db;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #5f6368;
 }
 
 .platform-selector {
@@ -542,9 +605,9 @@
 }
 
 .form-helper {
+  margin-top: 5px;
   font-size: 0.8rem;
-  color: #7f8c8d;
-  margin-top: 4px;
+  color: #6c757d;
 }
 
 .save-button {
@@ -620,4 +683,36 @@
   background-color: #ecf0f1;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Add styles for the API key info display */
+.env-notice {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+}
+
+.api-key-info {
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+/* Style for the model input text box */
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-group input[type="text"]:focus {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }

@@ -1,7 +1,11 @@
 import './App.css';
 import Editor from './components/Editor';
+import ConfigPage from './components/ConfigPage';
+import { getOutlineInstruction } from './components/ConfigPage';
 import { useState, useEffect } from 'react';
 import OpenAIService from './services/openai';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -15,19 +19,13 @@ function App() {
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [apiKey, setApiKey] = useState('');
   const [aiModel, setAiModel] = useState(process.env.REACT_APP_DEFAULT_AI_MODEL || 'gpt-4');
   const [apiKeyError, setApiKeyError] = useState('');
-  const [systemInstruction, setSystemInstruction] = useState('');
 
-  // Load API key and model preferences from localStorage on component mount
+  // Load model preferences only - removed system instruction loading
   useEffect(() => {
-    const savedApiKey = localStorage.getItem('openai_api_key') || process.env.REACT_APP_OPENAI_API_KEY || '';
     const savedModel = localStorage.getItem('openai_model') || process.env.REACT_APP_DEFAULT_AI_MODEL || 'gpt-4';
-    const savedInstruction = localStorage.getItem('system_instruction') || '';
-    setApiKey(savedApiKey);
     setAiModel(savedModel);
-    setSystemInstruction(savedInstruction);
   }, []);
 
   // Content type presets
@@ -66,49 +64,23 @@ function App() {
   const generateAIOutline = async () => {
     setIsGenerating(true);
     try {
-      // Check if API key exists
-      const hasApiKey = localStorage.getItem('openai_api_key') || process.env.REACT_APP_OPENAI_API_KEY;
+      // Get the instruction from ConfigPage
+      const configPageInstruction = getOutlineInstruction();
       
-      if (hasApiKey) {
-        // Use OpenAI service to generate outline
-        const outline = await OpenAIService.generateOutline(contentDescription, contentType);
-        setGeneratedOutline(outline);
-      } else {
-        // No API key, use fallback
-        setGeneratedOutline(generateFallbackOutline());
-        setApiKeyError('No OpenAI API key found. Using local outline generation instead. Add your API key in Config to use AI-powered generation.');
-      }
+      // Use OpenAI service to generate outline
+      const outline = await OpenAIService.generateOutline(
+        contentDescription, 
+        contentType,
+        configPageInstruction // Pass the ConfigPage instruction
+      );
+      setGeneratedOutline(outline);
       setCurrentStep(2);
     } catch (error) {
-      console.error('Error generating outline:', error);
-      // Fallback to local outline generation if API call fails
-      setGeneratedOutline(generateFallbackOutline());
-      setApiKeyError('Error connecting to OpenAI API. Using local outline generation instead.');
-      setCurrentStep(2);
+      setApiKeyError('Error connecting to OpenAI API. Please check your configuration.');
+      // Stay on current step when there's an error
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const generateFallbackOutline = () => {
-    // Fallback outline generation when API call is not implemented or fails
-    let outline = '';
-    
-    if (contentType === 'latest-news') {
-      outline = "# Breaking News Update\n\n## Key Points\n- Main news development\n- Background context\n- Why this matters\n\n## Impact Analysis\n- Industry implications\n- What to watch for next";
-    } else if (contentType === 'motivation') {
-      outline = "# Motivational Message\n\n## Opening Hook\n- Attention-grabbing statement\n- Relatable scenario\n\n## Main Message\n- Key motivational concept\n- Supporting points\n\n## Call to Action\n- How to apply this motivation";
-    } else if (contentType === 'info') {
-      outline = "# Informational Guide\n\n## Introduction\n- Topic overview\n- Why this matters\n\n## Key Information\n- Primary facts\n- Secondary details\n- Expert insights\n\n## Practical Application\n- How to use this information";
-    } else if (contentType === 'vibe-check') {
-      outline = "# Vibe Check\n\n## Current Mood\n- Personal status update\n- Relatable feeling\n\n## Conversation Starter\n- Question for audience\n- Engagement prompt";
-    } else if (contentType === 'surprise-me') {
-      outline = "# Unexpected Content\n\n## Attention Grabber\n- Surprising fact or statement\n- Unusual perspective\n\n## Main Content\n- Unconventional idea\n- Creative approach\n\n## Memorable Closing\n- Thought-provoking takeaway";
-    } else if (contentDescription) {
-      outline = `# Custom Content: ${contentDescription}\n\n## Introduction\n- Opening hook based on your description\n- Set context\n\n## Main Points\n- Key idea 1\n- Key idea 2\n- Key idea 3\n\n## Conclusion\n- Summarizing thoughts\n- Next steps or call to action`;
-    }
-    
-    return outline;
   };
 
   const selectPlatform = (platform) => {
@@ -119,22 +91,11 @@ function App() {
   const optimizeForPlatform = async () => {
     setIsGenerating(true);
     try {
-      // Check if API key exists
-      const hasApiKey = localStorage.getItem('openai_api_key') || process.env.REACT_APP_OPENAI_API_KEY;
-      
-      if (hasApiKey) {
-        // This will be handled in the Editor component when it renders
-        // We're just advancing the step here
-        setCurrentStep(4);
-      } else {
-        // Without API key, we'll just advance and use local optimization in the Editor
-        setApiKeyError('No OpenAI API key found. Using local optimization instead. Add your API key in Config to use AI-powered optimization.');
-        setCurrentStep(4);
-      }
-    } catch (error) {
-      console.error('Error optimizing for platform:', error);
-      setApiKeyError('Error connecting to OpenAI API. Using local optimization instead.');
+      // Simply advance to the next step - the Editor component will handle the actual optimization
       setCurrentStep(4);
+    } catch (error) {
+      console.error('Error moving to optimization step:', error);
+      setApiKeyError('An error occurred. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -163,39 +124,9 @@ function App() {
     setApiKeyError('');
   };
 
-  const handleApiKeyChange = (e) => {
-    const newApiKey = e.target.value;
-    setApiKey(newApiKey);
-  };
-
   const handleModelChange = (e) => {
     const newModel = e.target.value;
     setAiModel(newModel);
-  };
-
-  const handleSystemInstructionChange = (e) => {
-    const newInstruction = e.target.value;
-    setSystemInstruction(newInstruction);
-  };
-
-  const saveSettings = () => {
-    // Save API key and model to localStorage
-    if (apiKey) {
-      localStorage.setItem('openai_api_key', apiKey);
-    } else {
-      localStorage.removeItem('openai_api_key');
-    }
-    
-    localStorage.setItem('openai_model', aiModel);
-    
-    // Save system instruction
-    if (systemInstruction) {
-      localStorage.setItem('system_instruction', systemInstruction);
-    } else {
-      localStorage.removeItem('system_instruction');
-    }
-    
-    alert('Settings saved successfully!');
   };
 
   const renderStepIndicator = () => {
@@ -231,111 +162,7 @@ function App() {
 
   // Config view render function
   const renderConfigView = () => {
-    return (
-      <div className="config-view">
-        <h2>Configuration</h2>
-        <div className="config-section">
-          <h3>User Settings</h3>
-          <div className="config-form">
-            <div className="form-group">
-              <label>Display Name</label>
-              <input type="text" placeholder="Your Name" />
-            </div>
-            <div className="form-group">
-              <label>Email</label>
-              <input type="email" placeholder="your.email@example.com" />
-            </div>
-            <div className="form-group">
-              <label>Default Platform</label>
-              <select>
-                <option value="twitter">Twitter</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="instagram">Instagram</option>
-                <option value="blog">Blog</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div className="config-section">
-          <h3>AI Configuration</h3>
-          <div className="config-form">
-            <div className="form-group">
-              <label>OpenAI API Key</label>
-              <input 
-                type="password" 
-                placeholder="Enter your OpenAI API key" 
-                value={apiKey}
-                onChange={handleApiKeyChange}
-              />
-              <small className="form-helper">
-                Your API key is stored locally and never sent to our servers. 
-                {process.env.REACT_APP_OPENAI_API_KEY ? " An API key is already set in environment variables." : ""}
-              </small>
-            </div>
-            <div className="form-group">
-              <label>AI Model</label>
-              <select value={aiModel} onChange={handleModelChange}>
-                <option value="gpt-4">GPT-4 (Best quality)</option>
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster)</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>System Instruction</label>
-              <textarea
-                className="system-instruction"
-                placeholder="Enter custom system instructions for the AI. This will be prepended to all prompts."
-                value={systemInstruction}
-                onChange={handleSystemInstructionChange}
-                rows={5}
-              ></textarea>
-              <small className="form-helper">
-                The system instruction guides AI behavior. For example: "You are a marketing expert specializing in engaging Gen Z audiences. Focus on trends, authenticity, and concise messaging."
-              </small>
-            </div>
-            <div className="form-group">
-              <label>Suggestion Style</label>
-              <select>
-                <option value="casual">Casual</option>
-                <option value="professional">Professional</option>
-                <option value="creative">Creative</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div className="preset-system-prompts">
-          <h3>Example System Instructions</h3>
-          <div className="preset-buttons">
-            <button 
-              className="preset-button"
-              onClick={() => setSystemInstruction("You are a marketing expert who creates viral social media content. You understand trends, use relatable language, and craft messages that resonate with younger audiences.")}
-            >
-              Marketing Expert
-            </button>
-            <button 
-              className="preset-button"
-              onClick={() => setSystemInstruction("You are a professional journalist who writes clear, factual, and balanced content. You verify information, avoid sensationalism, and present multiple perspectives.")}
-            >
-              Journalist
-            </button>
-            <button 
-              className="preset-button"
-              onClick={() => setSystemInstruction("You are a storyteller who creates engaging narrative content. You use vivid descriptions, emotional hooks, and compelling character-driven scenarios.")}
-            >
-              Storyteller
-            </button>
-            <button 
-              className="preset-button"
-              onClick={() => setSystemInstruction("You are a technical writer who explains complex concepts clearly. You use precise language, provide examples, and break down difficult ideas into understandable components.")}
-            >
-              Technical Writer
-            </button>
-          </div>
-        </div>
-        <div className="save-button">
-          <button className="action-button primary" onClick={saveSettings}>Save Settings</button>
-        </div>
-      </div>
-    );
+    return <ConfigPage />;
   };
 
   // Get content for the current view
@@ -407,7 +234,11 @@ function App() {
             <h2>AI-Generated Outline</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
             <div className="outline-container">
-              <pre className="outline-content">{generatedOutline}</pre>
+              <div className="outline-content">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {generatedOutline}
+                </ReactMarkdown>
+              </div>
             </div>
             
             <div className="platform-selector">
@@ -484,7 +315,13 @@ function App() {
             <div className="preview-container">
               <h3>Content Preview</h3>
               <div className="content-preview">
-                <p>{finalContent || "Your optimized content will appear here."}</p>
+                {finalContent ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {finalContent}
+                  </ReactMarkdown>
+                ) : (
+                  <p>Your optimized content will appear here.</p>
+                )}
               </div>
             </div>
             
