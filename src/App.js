@@ -198,6 +198,10 @@ function App() {
       <div className="home-view">
         {currentStep === 1 && (
           <div className="content-card">
+            <div className="step-indicator">
+              <div className="step-number">1</div>
+              <div className="step-label">Step 1 of 5: Describe Your Content</div>
+            </div>
             <h2>What do you want to create?</h2>
             
             <div className="content-description">
@@ -239,6 +243,10 @@ function App() {
         
         {currentStep === 2 && (
           <div className="content-card">
+            <div className="step-indicator">
+              <div className="step-number">2</div>
+              <div className="step-label">Step 2 of 5: Review Outline</div>
+            </div>
             <h2>AI-Generated Outline</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
             
@@ -276,6 +284,10 @@ function App() {
         
         {currentStep === 3 && (
           <div className="content-card">
+            <div className="step-indicator">
+              <div className="step-number">3</div>
+              <div className="step-label">Step 3 of 5: Choose Platform</div>
+            </div>
             <h2>Optimize for {currentPlatform}</h2>
             
             <div className="action-container">
@@ -295,6 +307,10 @@ function App() {
         
         {currentStep === 4 && (
           <div className="content-card">
+            <div className="step-indicator">
+              <div className="step-number">4</div>
+              <div className="step-label">Step 4 of 5: Edit Content</div>
+            </div>
             <h2>Optimized for {currentPlatform}</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
             
@@ -319,6 +335,10 @@ function App() {
         
         {currentStep === 5 && (
           <div className="content-card">
+            <div className="step-indicator">
+              <div className="step-number">5</div>
+              <div className="step-label">Step 5 of 5: Publish</div>
+            </div>
             <h2>Publish to {currentPlatform}</h2>
             
             <div className="preview-container">
