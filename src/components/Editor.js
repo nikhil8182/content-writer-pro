@@ -98,6 +98,42 @@ function Editor({
     setIsPreviewMode(!isPreviewMode);
   };
   
+  // Get platform-specific tips
+  const getPlatformTips = () => {
+    switch(platform) {
+      case 'twitter':
+        return [
+          `Keep it under ${currentLimit} characters`,
+          'Use 1-2 relevant hashtags',
+          'Include a clear call to action'
+        ];
+      case 'linkedin':
+        return [
+          'Professional tone works best',
+          'Include industry insights',
+          'End with a question to drive engagement'
+        ];
+      case 'instagram':
+        return [
+          'Add relevant context for images',
+          'Use concise, engaging language',
+          'Maintain brand voice consistency'
+        ];
+      case 'blog':
+        return [
+          'Include a compelling headline',
+          'Structure with headers for scanability',
+          'Aim for 1000+ words for SEO'
+        ];
+      default:
+        return [
+          'Keep content clear and concise',
+          'Use appropriate tone for your audience',
+          'Include a call to action'
+        ];
+    }
+  };
+  
   return (
     <div className="editor-container">
       {isOptimizing && (
@@ -109,24 +145,33 @@ function Editor({
         </div>
       )}
       
-      <div className="editor-toolbar">
-        <button className="toolbar-button">B</button>
-        <button className="toolbar-button">I</button>
-        <button className="toolbar-button">U</button>
-        <span className="separator"></span>
-        <button className="toolbar-button">H1</button>
-        <button className="toolbar-button">H2</button>
-        <span className="separator"></span>
-        <button className="toolbar-button">List</button>
-        <button className="toolbar-button">Link</button>
-        <button className="toolbar-button">Image</button>
-        <div className="toolbar-spacer"></div>
-        <button 
-          className={`toolbar-button preview-toggle ${isPreviewMode ? 'active' : ''}`}
-          onClick={togglePreviewMode}
-        >
-          {isPreviewMode ? 'Edit' : 'Preview'}
-        </button>
+      <div className="editor-header">
+        <div className="platform-badge">
+          <span className="platform-icon">
+            {platform === 'twitter' && '🐦'}
+            {platform === 'linkedin' && '💼'}
+            {platform === 'instagram' && '📸'}
+            {platform === 'blog' && '📝'}
+            {!['twitter', 'linkedin', 'instagram', 'blog'].includes(platform) && '📄'}
+          </span>
+          <span>{platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+          <div className={`char-counter ${getCharCounterClass()}`}>
+            <span className={charCount > currentLimit ? 'over-limit' : ''}>
+              {charCount}
+            </span>
+            <span>/</span>
+            <span>{currentLimit}</span>
+          </div>
+        </div>
+        
+        <div className="editor-actions">
+          <button 
+            className={`view-toggle-btn ${isPreviewMode ? 'active' : ''}`}
+            onClick={togglePreviewMode}
+          >
+            {isPreviewMode ? 'Edit' : 'Preview'}
+          </button>
+        </div>
       </div>
       
       <div className="editor-main">
@@ -141,7 +186,7 @@ function Editor({
             <textarea 
               value={content}
               onChange={handleContentChange}
-              placeholder={`Start writing your ${platform} content here...`}
+              placeholder={`Write your optimized ${platform} content here...`}
               className="editor-textarea"
             ></textarea>
             <div className={`char-counter-inline ${getCharCounterClass()}`}>
@@ -162,42 +207,17 @@ function Editor({
             onClick={generatePlatformContent}
             disabled={isGeneratingAI || !contentDescription}
           >
-            {isGeneratingAI ? 'Generating...' : 'Generate with AI'}
+            {isGeneratingAI ? 'Generating...' : 'Regenerate with AI'}
           </button>
         </div>
         
-        <div className="platform-info">
-          <h3>Platform Tips</h3>
-          <div className="platform-tips">
-            {platform === 'twitter' && (
-              <ul>
-                <li>Keep it under {currentLimit} characters</li>
-                <li>Use 1-2 relevant hashtags</li>
-                <li>Include a clear call to action</li>
-              </ul>
-            )}
-            {platform === 'linkedin' && (
-              <ul>
-                <li>Professional tone works best</li>
-                <li>Include industry insights</li>
-                <li>End with a question to drive engagement</li>
-              </ul>
-            )}
-            {platform === 'instagram' && (
-              <ul>
-                <li>Add relevant context to images</li>
-                <li>Use concise, engaging language</li>
-                <li>Maintain brand voice consistency</li>
-              </ul>
-            )}
-            {platform === 'blog' && (
-              <ul>
-                <li>Include a compelling headline</li>
-                <li>Structure with headers for scanability</li>
-                <li>Aim for 1000+ words for SEO</li>
-              </ul>
-            )}
-          </div>
+        <div className="platform-tips-compact">
+          <h3>Tips for {platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
+          <ul>
+            {getPlatformTips().map((tip, index) => (
+              <li key={index}>{tip}</li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
