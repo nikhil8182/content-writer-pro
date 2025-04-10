@@ -95,20 +95,8 @@ function App() {
 
   const selectPlatform = (platform) => {
     setCurrentPlatform(platform);
+    // Skip step 3, go directly to editor (Step 3 in new flow)
     setCurrentStep(3);
-  };
-
-  const optimizeForPlatform = async () => {
-    setIsGenerating(true);
-    try {
-      // Simply advance to the next step - the Editor component will handle the actual optimization
-      setCurrentStep(4);
-    } catch (error) {
-      console.error('Error moving to optimization step:', error);
-      setApiKeyError('An error occurred. Please try again.');
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleScheduleToggle = () => {
@@ -177,13 +165,13 @@ function App() {
               <div className="progress-bar">
                 <div 
                   className="progress-fill" 
-                  style={{width: `${(currentStep / 5) * 100}%`}}
+                  style={{width: `${(currentStep / 4) * 100}%`}}
                 ></div>
               </div>
               <div className="step-labels">
                 <span className={currentStep >= 1 ? 'active' : ''}>Describe</span>
-                <span className={currentStep >= 3 ? 'active' : ''}>Platform</span>
-                <span className={currentStep >= 5 ? 'active' : ''}>Publish</span>
+                <span className={currentStep >= 2 ? 'active' : ''}>Outline</span>
+                <span className={currentStep >= 4 ? 'active' : ''}>Publish</span>
               </div>
             </div>
           )}
@@ -192,7 +180,7 @@ function App() {
     );
   };
 
-  // Home view render function (with all steps)
+  // Home view render function (with streamlined steps)
   const renderHomeView = () => {
     return (
       <div className="home-view">
@@ -200,7 +188,7 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">1</div>
-              <div className="step-label">Step 1 of 5: Describe Your Content</div>
+              <div className="step-label">Step 1 of 4: Describe Your Content</div>
             </div>
             <h2>What do you want to create?</h2>
             
@@ -245,7 +233,7 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">2</div>
-              <div className="step-label">Step 2 of 5: Review Outline</div>
+              <div className="step-label">Step 2 of 4: Choose Platform & Review Outline</div>
             </div>
             <h2>AI-Generated Outline</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
@@ -259,7 +247,7 @@ function App() {
             </div>
             
             <div className="platform-selector">
-              <h3>Select platform</h3>
+              <h3>Select platform to optimize for</h3>
               <div className="platform-grid">
                 {platformOptions.map(platform => (
                   <button 
@@ -286,32 +274,9 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">3</div>
-              <div className="step-label">Step 3 of 5: Choose Platform</div>
+              <div className="step-label">Step 3 of 4: Edit Content</div>
             </div>
             <h2>Optimize for {currentPlatform}</h2>
-            
-            <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
-                Back
-              </button>
-              <button 
-                className="action-button primary" 
-                onClick={optimizeForPlatform}
-                disabled={isGenerating}
-              >
-                {isGenerating ? 'Optimizing...' : 'Optimize'} {isGenerating && <span className="loading-spinner"></span>}
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 4 && (
-          <div className="content-card">
-            <div className="step-indicator">
-              <div className="step-number">4</div>
-              <div className="step-label">Step 4 of 5: Edit Content</div>
-            </div>
-            <h2>Optimized for {currentPlatform}</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
             
             <Editor 
@@ -323,21 +288,21 @@ function App() {
             />
             
             <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(3)}>
+              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
                 Back
               </button>
-              <button className="action-button primary" onClick={() => setCurrentStep(5)}>
-                Continue
+              <button className="action-button primary" onClick={() => setCurrentStep(4)}>
+                Continue to Publish
               </button>
             </div>
           </div>
         )}
         
-        {currentStep === 5 && (
+        {currentStep === 4 && (
           <div className="content-card">
             <div className="step-indicator">
-              <div className="step-number">5</div>
-              <div className="step-label">Step 5 of 5: Publish</div>
+              <div className="step-number">4</div>
+              <div className="step-label">Step 4 of 4: Publish</div>
             </div>
             <h2>Publish to {currentPlatform}</h2>
             
@@ -393,7 +358,7 @@ function App() {
               )}
               
               <div className="action-container">
-                <button className="action-button secondary" onClick={() => setCurrentStep(4)}>
+                <button className="action-button secondary" onClick={() => setCurrentStep(3)}>
                   Back
                 </button>
                 <button 
