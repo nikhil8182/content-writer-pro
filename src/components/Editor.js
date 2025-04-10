@@ -127,13 +127,6 @@ function Editor({
         >
           {isPreviewMode ? 'Edit' : 'Preview'}
         </button>
-        <div className={`char-counter ${getCharCounterClass()}`}>
-          <span className={charCount > currentLimit ? 'over-limit' : ''}>
-            {charCount}
-          </span>
-          <span>/</span>
-          <span>{currentLimit}</span>
-        </div>
       </div>
       
       <div className="editor-main">
@@ -144,12 +137,21 @@ function Editor({
             </ReactMarkdown>
           </div>
         ) : (
-          <textarea 
-            value={content}
-            onChange={handleContentChange}
-            placeholder={`Start writing your ${platform} content here...`}
-            className="editor-textarea"
-          ></textarea>
+          <div className="editor-textarea-container">
+            <textarea 
+              value={content}
+              onChange={handleContentChange}
+              placeholder={`Start writing your ${platform} content here...`}
+              className="editor-textarea"
+            ></textarea>
+            <div className={`char-counter-inline ${getCharCounterClass()}`}>
+              <span className={charCount > currentLimit ? 'over-limit' : ''}>
+                {charCount}
+              </span>
+              <span>/</span>
+              <span>{currentLimit}</span>
+            </div>
+          </div>
         )}
       </div>
       

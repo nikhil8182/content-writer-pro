@@ -26,30 +26,21 @@ const CharCounterTest = () => {
     <div style={{ maxWidth: '600px', margin: '20px auto', padding: '20px' }}>
       <h2>Character Counter Test</h2>
       
-      <div style={{ marginBottom: '20px' }}>
+      <div className="editor-textarea-container" style={{ marginBottom: '20px' }}>
         <textarea
           value={text}
           onChange={handleTextChange}
           placeholder="Type here to test the character counter..."
-          style={{
-            width: '100%',
-            height: '150px',
-            padding: '12px',
-            borderRadius: '8px',
-            border: '1px solid #ccc',
-            fontFamily: 'inherit',
-            fontSize: '14px',
-            resize: 'vertical'
-          }}
+          className="editor-textarea"
+          style={{ height: '150px' }}
         />
-      </div>
-      
-      <div className={`char-counter ${getCharCounterClass()}`} style={{ display: 'inline-flex' }}>
-        <span className={text.length > charLimit ? 'over-limit' : ''}>
-          {text.length}
-        </span>
-        <span>/</span>
-        <span>{charLimit}</span>
+        <div className={`char-counter-inline ${getCharCounterClass()}`}>
+          <span className={text.length > charLimit ? 'over-limit' : ''}>
+            {text.length}
+          </span>
+          <span>/</span>
+          <span>{charLimit}</span>
+        </div>
       </div>
       
       {text.length > charLimit && (
