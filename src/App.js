@@ -19,22 +19,29 @@ function App() {
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [aiModel, setAiModel] = useState(process.env.REACT_APP_DEFAULT_AI_MODEL || 'gpt-4');
   const [apiKeyError, setApiKeyError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Load model preferences only - removed system instruction loading
   useEffect(() => {
     const savedModel = localStorage.getItem('openai_model') || process.env.REACT_APP_DEFAULT_AI_MODEL || 'gpt-4';
-    setAiModel(savedModel);
   }, []);
 
   // Content type presets
   const contentPresets = [
-    { id: 'latest-news', label: 'Latest News' },
-    { id: 'motivation', label: 'Motivation' },
-    { id: 'info', label: 'Information' },
-    { id: 'vibe-check', label: 'Vibe Check' },
-    { id: 'surprise-me', label: 'Surprise Me' }
+    { id: 'latest-news', label: 'News', icon: '📰' },
+    { id: 'motivation', label: 'Motivation', icon: '💪' },
+    { id: 'info', label: 'Information', icon: 'ℹ️' },
+    { id: 'vibe-check', label: 'Vibe Check', icon: '😎' },
+    { id: 'surprise-me', label: 'Surprise Me', icon: '🎁' }
+  ];
+
+  // Platform options
+  const platformOptions = [
+    { id: 'twitter', label: 'Twitter', icon: '🐦' },
+    { id: 'linkedin', label: 'LinkedIn', icon: '💼' },
+    { id: 'instagram', label: 'Instagram', icon: '📸' },
+    { id: 'blog', label: 'Blog', icon: '📝' }
   ];
 
   const handleContentPresetClick = (preset) => {
@@ -124,38 +131,257 @@ function App() {
     setApiKeyError('');
   };
 
-  const handleModelChange = (e) => {
-    const newModel = e.target.value;
-    setAiModel(newModel);
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
-  const renderStepIndicator = () => {
+  const renderSidebar = () => {
     return (
-      <div className="step-indicator">
-        <div className={`step ${currentStep >= 1 ? 'active' : ''}`}>
-          <div className="step-number">1</div>
-          <div className="step-label">Describe</div>
+      <div className={`app-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+        <div className="sidebar-header">
+          <div className="logo">
+            <span className="logo-icon">✍️</span>
+            <h1>Writer Pro</h1>
+          </div>
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            {sidebarOpen ? '◀' : '▶'}
+          </button>
         </div>
-        <div className="step-connector"></div>
-        <div className={`step ${currentStep >= 2 ? 'active' : ''}`}>
-          <div className="step-number">2</div>
-          <div className="step-label">Outline</div>
+        
+        <div className="sidebar-content">
+          <nav className="sidebar-nav">
+            <button 
+              className={currentView === 'home' ? 'nav-item active' : 'nav-item'} 
+              onClick={() => {
+                setCurrentView('home');
+                resetWorkflow();
+              }}>
+              <span className="nav-icon">📝</span>
+              <span className="nav-label">Write</span>
+            </button>
+            <button 
+              className={currentView === 'config' ? 'nav-item active' : 'nav-item'} 
+              onClick={() => setCurrentView('config')}>
+              <span className="nav-icon">⚙️</span>
+              <span className="nav-label">Settings</span>
+            </button>
+          </nav>
+          
+          {currentView === 'home' && (
+            <div className="workflow-progress">
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{width: `${(currentStep / 5) * 100}%`}}
+                ></div>
+              </div>
+              <div className="step-labels">
+                <span className={currentStep >= 1 ? 'active' : ''}>Describe</span>
+                <span className={currentStep >= 3 ? 'active' : ''}>Platform</span>
+                <span className={currentStep >= 5 ? 'active' : ''}>Publish</span>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="step-connector"></div>
-        <div className={`step ${currentStep >= 3 ? 'active' : ''}`}>
-          <div className="step-number">3</div>
-          <div className="step-label">Platform</div>
-        </div>
-        <div className="step-connector"></div>
-        <div className={`step ${currentStep >= 4 ? 'active' : ''}`}>
-          <div className="step-number">4</div>
-          <div className="step-label">Optimize</div>
-        </div>
-        <div className="step-connector"></div>
-        <div className={`step ${currentStep >= 5 ? 'active' : ''}`}>
-          <div className="step-number">5</div>
-          <div className="step-label">Publish</div>
-        </div>
+      </div>
+    );
+  };
+
+  // Home view render function (with all steps)
+  const renderHomeView = () => {
+    return (
+      <div className="home-view">
+        {currentStep === 1 && (
+          <div className="content-card">
+            <h2>What do you want to create?</h2>
+            
+            <div className="content-description">
+              <textarea 
+                value={contentDescription}
+                onChange={(e) => setContentDescription(e.target.value)}
+                placeholder="Describe what you want to write about..."
+                className="content-textarea"
+              />
+            </div>
+            
+            <div className="content-presets">
+              <h3>Quick templates:</h3>
+              <div className="preset-grid">
+                {contentPresets.map(preset => (
+                  <button 
+                    key={preset.id}
+                    className={contentType === preset.id ? 'preset-card active' : 'preset-card'}
+                    onClick={() => handleContentPresetClick(preset)}
+                  >
+                    <div className="preset-icon">{preset.icon}</div>
+                    <div className="preset-label">{preset.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="action-container">
+              <button 
+                className="action-button primary"
+                onClick={generateAIOutline}
+                disabled={(!contentDescription && !contentType) || isGenerating}
+              >
+                {isGenerating ? 'Generating...' : 'Generate Outline'} {isGenerating && <span className="loading-spinner"></span>}
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {currentStep === 2 && (
+          <div className="content-card">
+            <h2>AI-Generated Outline</h2>
+            {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
+            
+            <div className="outline-container">
+              <div className="outline-content">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {generatedOutline}
+                </ReactMarkdown>
+              </div>
+            </div>
+            
+            <div className="platform-selector">
+              <h3>Select platform</h3>
+              <div className="platform-grid">
+                {platformOptions.map(platform => (
+                  <button 
+                    key={platform.id}
+                    className="platform-card"
+                    onClick={() => selectPlatform(platform.id)}
+                  >
+                    <div className="platform-icon">{platform.icon}</div>
+                    <div className="platform-name">{platform.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="action-container">
+              <button className="action-button secondary" onClick={() => setCurrentStep(1)}>
+                Back
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {currentStep === 3 && (
+          <div className="content-card">
+            <h2>Optimize for {currentPlatform}</h2>
+            
+            <div className="action-container">
+              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
+                Back
+              </button>
+              <button 
+                className="action-button primary" 
+                onClick={optimizeForPlatform}
+                disabled={isGenerating}
+              >
+                {isGenerating ? 'Optimizing...' : 'Optimize'} {isGenerating && <span className="loading-spinner"></span>}
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {currentStep === 4 && (
+          <div className="content-card">
+            <h2>Optimized for {currentPlatform}</h2>
+            {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
+            
+            <Editor 
+              platform={currentPlatform} 
+              contentDescription={contentDescription}
+              contentType={contentType}
+              initialOutline={generatedOutline}
+              onContentChange={(newContent) => setFinalContent(newContent)}
+            />
+            
+            <div className="action-container">
+              <button className="action-button secondary" onClick={() => setCurrentStep(3)}>
+                Back
+              </button>
+              <button className="action-button primary" onClick={() => setCurrentStep(5)}>
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {currentStep === 5 && (
+          <div className="content-card">
+            <h2>Publish to {currentPlatform}</h2>
+            
+            <div className="preview-container">
+              <h3>Preview</h3>
+              <div className="content-preview">
+                {finalContent ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {finalContent}
+                  </ReactMarkdown>
+                ) : (
+                  <p>Your optimized content will appear here.</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="publishing-controls">
+              <div className="toggle-switch">
+                <label className="switch">
+                  <input 
+                    type="checkbox" 
+                    checked={isScheduling}
+                    onChange={handleScheduleToggle}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span>Schedule for later</span>
+              </div>
+              
+              {isScheduling && (
+                <div className="schedule-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Date</label>
+                      <input 
+                        type="date" 
+                        value={scheduledDate}
+                        onChange={(e) => setScheduledDate(e.target.value)}
+                        className="date-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Time</label>
+                      <input 
+                        type="time" 
+                        value={scheduledTime}
+                        onChange={(e) => setScheduledTime(e.target.value)}
+                        className="time-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="action-container">
+                <button className="action-button secondary" onClick={() => setCurrentStep(4)}>
+                  Back
+                </button>
+                <button 
+                  className="action-button primary"
+                  onClick={handlePost}
+                  disabled={isScheduling && (!scheduledDate || !scheduledTime)}
+                >
+                  {isScheduling ? 'Schedule' : 'Post Now'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -173,237 +399,18 @@ function App() {
       case 'config':
         return renderConfigView();
       default:
-        return (
-          <div className="home-view">
-            <Editor platform="twitter" />
-          </div>
-        );
+        return renderHomeView();
     }
-  };
-
-  // Home view render function (with all steps)
-  const renderHomeView = () => {
-    return (
-      <div className="home-view">
-        {renderStepIndicator()}
-        
-        {currentStep === 1 && (
-          <div className="content-selection">
-            <h2>What do you want to create today?</h2>
-            
-            <div className="content-description">
-              <label htmlFor="content-description">Describe your content</label>
-              <textarea 
-                id="content-description"
-                value={contentDescription}
-                onChange={(e) => setContentDescription(e.target.value)}
-                placeholder="Enter a description of what you want to write about..."
-                className="content-textarea"
-              />
-            </div>
-            
-            <div className="content-presets">
-              <p>Or select a content type:</p>
-              <div className="preset-buttons">
-                {contentPresets.map(preset => (
-                  <button 
-                    key={preset.id}
-                    className={contentType === preset.id ? 'preset-button active' : 'preset-button'}
-                    onClick={() => handleContentPresetClick(preset)}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="action-container">
-              <button 
-                className="action-button primary"
-                onClick={generateAIOutline}
-                disabled={(!contentDescription && !contentType) || isGenerating}
-              >
-                {isGenerating ? 'Generating...' : 'Generate Outline'}
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 2 && (
-          <div className="content-outline">
-            <h2>AI-Generated Outline</h2>
-            {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
-            <div className="outline-container">
-              <div className="outline-content">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {generatedOutline}
-                </ReactMarkdown>
-              </div>
-            </div>
-            
-            <div className="platform-selector">
-              <h3>Select platform to optimize for</h3>
-              <div className="platform-buttons">
-                <button onClick={() => selectPlatform('twitter')}>Twitter</button>
-                <button onClick={() => selectPlatform('linkedin')}>LinkedIn</button>
-                <button onClick={() => selectPlatform('instagram')}>Instagram</button>
-                <button onClick={() => selectPlatform('blog')}>Blog</button>
-              </div>
-            </div>
-            
-            <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(1)}>
-                Back
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 3 && (
-          <div className="platform-optimization">
-            <h2>Optimize for {currentPlatform}</h2>
-            <p className="platform-description">
-              {currentPlatform === 'twitter' && 'Twitter posts work best when they are concise, use hashtags, and have a clear call to action.'}
-              {currentPlatform === 'linkedin' && 'LinkedIn content should be professional, provide value, and include industry-specific insights.'}
-              {currentPlatform === 'instagram' && 'Instagram posts should be visually focused, with engaging captions and strategic hashtags.'}
-              {currentPlatform === 'blog' && 'Blog content should be comprehensive, well-structured, and optimized for SEO.'}
-            </p>
-            
-            <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
-                Back
-              </button>
-              <button 
-                className="action-button primary" 
-                onClick={optimizeForPlatform}
-                disabled={isGenerating}
-              >
-                {isGenerating ? 'Optimizing...' : 'Optimize Content'}
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 4 && (
-          <div className="optimized-content">
-            <h2>Optimized for {currentPlatform}</h2>
-            {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
-            
-            <Editor 
-              platform={currentPlatform} 
-              contentDescription={contentDescription}
-              contentType={contentType}
-              initialOutline={generatedOutline}
-              onContentChange={(newContent) => setFinalContent(newContent)}
-            />
-            
-            <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(3)}>
-                Back
-              </button>
-              <button className="action-button primary" onClick={() => setCurrentStep(5)}>
-                Continue to Publishing
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 5 && (
-          <div className="publishing-options">
-            <h2>Publish to {currentPlatform}</h2>
-            
-            <div className="preview-container">
-              <h3>Content Preview</h3>
-              <div className="content-preview">
-                {finalContent ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {finalContent}
-                  </ReactMarkdown>
-                ) : (
-                  <p>Your optimized content will appear here.</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="publishing-controls">
-              <div className="schedule-toggle">
-                <label className="toggle-container">
-                  <input 
-                    type="checkbox" 
-                    checked={isScheduling}
-                    onChange={handleScheduleToggle}
-                  />
-                  <span className="toggle-label">Schedule for later</span>
-                </label>
-              </div>
-              
-              {isScheduling && (
-                <div className="schedule-form">
-                  <div className="form-group">
-                    <label>Date</label>
-                    <input 
-                      type="date" 
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Time</label>
-                    <input 
-                      type="time" 
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              <div className="action-container">
-                <button className="action-button secondary" onClick={() => setCurrentStep(4)}>
-                  Back
-                </button>
-                <button 
-                  className="action-button primary"
-                  onClick={handlePost}
-                  disabled={isScheduling && (!scheduledDate || !scheduledTime)}
-                >
-                  {isScheduling ? 'Schedule Post' : 'Post Now'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
     <div className="App">
-      <header className="App-header">
-        <div className="header-content">
-          <h1>Writer Pro</h1>
-          <div className="nav-menu">
-            <button 
-              className={currentView === 'home' ? 'nav-button active' : 'nav-button'} 
-              onClick={() => {
-                setCurrentView('home');
-                resetWorkflow();
-              }}>
-              Write
-            </button>
-            <button 
-              className={currentView === 'config' ? 'nav-button active' : 'nav-button'} 
-              onClick={() => setCurrentView('config')}>
-              Config
-            </button>
-          </div>
-        </div>
-      </header>
+      {renderSidebar()}
       
-      <div className="App-container">
-        <main className="App-main">
+      <div className={`app-main ${sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'}`}>
+        <div className="content-container">
           {renderContent()}
-        </main>
+        </div>
       </div>
     </div>
   );

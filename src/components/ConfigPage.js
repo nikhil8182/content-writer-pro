@@ -101,6 +101,7 @@ function ConfigPage() {
   const [outlineInstruction, setOutlineInstruction] = useState('');
   const [optimizeInstruction, setOptimizeInstruction] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('outline');
 
   // Load instructions on mount using the helper functions
   useEffect(() => {
@@ -136,34 +137,105 @@ function ConfigPage() {
 
   return (
     <div className="config-page">
-      <h2>AI System Instructions Configuration</h2>
-      {statusMessage && <p className="status-message">{statusMessage}</p>}
-
-      <div className="instruction-section">
-        <h3>Content Outline Generation Instruction</h3>
-        <p>This instruction guides the AI when generating content outlines.</p>
-        <textarea
-          value={outlineInstruction}
-          onChange={(e) => setOutlineInstruction(e.target.value)}
-          rows={15}
-        />
-        <div className="button-group">
-          <button onClick={handleSaveOutline}>Save Outline Instruction</button>
-          <button onClick={handleResetOutline} className="reset-button">Reset to Default</button>
+      <div className="content-card">
+        <h2>AI Instructions</h2>
+        
+        {statusMessage && (
+          <div className="status-message">
+            <span className="status-icon">✓</span>
+            {statusMessage}
+          </div>
+        )}
+        
+        <div className="config-tabs">
+          <button 
+            className={`tab-button ${activeTab === 'outline' ? 'active' : ''}`}
+            onClick={() => setActiveTab('outline')}
+          >
+            <span className="tab-icon">📋</span>
+            Outline
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'optimize' ? 'active' : ''}`}
+            onClick={() => setActiveTab('optimize')}
+          >
+            <span className="tab-icon">✨</span>
+            Optimize
+          </button>
         </div>
+        
+        {activeTab === 'outline' && (
+          <div className="tab-content">
+            <div className="instruction-textarea-container">
+              <textarea
+                className="instruction-textarea"
+                value={outlineInstruction}
+                onChange={(e) => setOutlineInstruction(e.target.value)}
+                rows={15}
+                placeholder="Enter your custom outline generation instruction here..."
+              />
+            </div>
+            
+            <div className="button-group">
+              <button className="action-button secondary" onClick={handleResetOutline}>
+                Reset
+              </button>
+              <button className="action-button primary" onClick={handleSaveOutline}>
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'optimize' && (
+          <div className="tab-content">
+            <div className="instruction-textarea-container">
+              <textarea
+                className="instruction-textarea"
+                value={optimizeInstruction}
+                onChange={(e) => setOptimizeInstruction(e.target.value)}
+                rows={15}
+                placeholder="Enter your custom content optimization instruction here..."
+              />
+            </div>
+            
+            <div className="button-group">
+              <button className="action-button secondary" onClick={handleResetOptimize}>
+                Reset
+              </button>
+              <button className="action-button primary" onClick={handleSaveOptimize}>
+                Save
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      <div className="instruction-section">
-        <h3>Content Optimization Instruction</h3>
-        <p>This instruction guides the AI when optimizing content for specific platforms.</p>
-        <textarea
-          value={optimizeInstruction}
-          onChange={(e) => setOptimizeInstruction(e.target.value)}
-          rows={15}
-        />
-        <div className="button-group">
-          <button onClick={handleSaveOptimize}>Save Optimize Instruction</button>
-          <button onClick={handleResetOptimize} className="reset-button">Reset to Default</button>
+      
+      <div className="content-card">
+        <h2>API Settings</h2>
+        
+        <div className="api-settings">
+          <div className="models-info">
+            <div className="model-card">
+              <div className="model-icon">🧠</div>
+              <div className="model-details">
+                <h4>GPT-4o</h4>
+                <p>Used for outline generation.</p>
+              </div>
+            </div>
+            
+            <div className="model-card">
+              <div className="model-icon">✏️</div>
+              <div className="model-details">
+                <h4>GPT-4.5-Preview</h4>
+                <p>Used for content optimization.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="environment-note">
+            <p>API keys are configured in the backend's <code>.env</code> file.</p>
+          </div>
         </div>
       </div>
     </div>

@@ -172,9 +172,9 @@ function Editor({
             )}
             {platform === 'instagram' && (
               <ul>
-                <li>Visual language drives engagement</li>
-                <li>Use emojis strategically</li>
-                <li>Group hashtags at the end</li>
+                <li>Add relevant context to images</li>
+                <li>Use concise, engaging language</li>
+                <li>Maintain brand voice consistency</li>
               </ul>
             )}
             {platform === 'blog' && (

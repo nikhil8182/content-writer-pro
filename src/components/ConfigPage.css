@@ -10,6 +10,10 @@ if you want to apply styling.
   max-width: 900px;
   margin: 0 auto;
   font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  animation: fadeIn 0.5s ease;
 }
 
 .config-page h2 {
@@ -80,11 +84,272 @@ if you want to apply styling.
 }
 
 .status-message {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.05) 0%, rgba(46, 204, 113, 0.1) 100%);
+  color: #2ecc71;
+  padding: 12px 16px;
+  border-radius: var(--border-radius);
   margin-bottom: 20px;
-  padding: 10px;
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+  font-weight: 500;
+  animation: slideUp 0.3s ease-in-out;
+  box-shadow: 0 3px 10px rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.1);
+}
+
+.status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: white;
+  border-radius: 50%;
+  margin-right: 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Tab Navigation */
+.config-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 12px;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 10px 15px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary-color);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--primary-gradient);
+  transition: width 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: rgba(138, 108, 255, 0.05);
+  color: var(--primary-color);
+}
+
+.tab-button:hover::after {
+  width: 30%;
+}
+
+.tab-button.active {
+  background-color: rgba(138, 108, 255, 0.08);
+  color: var(--primary-color);
+}
+
+.tab-button.active::after {
+  width: 60%;
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 10px 0;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Instruction Info Box */
+.instruction-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #f8fafc;
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.info-text p {
+  margin: 0;
+  color: var(--dark-color);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Textarea Container */
+.instruction-textarea-container {
+  margin-bottom: 25px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--input-shadow);
+  position: relative;
+}
+
+.instruction-textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 20px;
+  border: none;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  color: var(--dark-color);
+  background-color: #fcfcfc;
+  transition: background-color 0.2s ease;
+}
+
+.instruction-textarea:focus {
+  outline: none;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(138, 108, 255, 0.1);
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* API Configuration Section */
+.api-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.environment-note {
+  background-color: #f8fafc;
+  border-radius: var(--border-radius);
+  padding: 15px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  color: var(--dark-color);
+  box-shadow: var(--input-shadow);
+  line-height: 1.6;
+}
+
+.environment-note code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
   border-radius: 4px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--primary-color);
+}
+
+/* Models Info */
+.models-info h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  color: var(--dark-color);
+}
+
+.model-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  background-color: #f8fafc;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 15px;
+  box-shadow: var(--input-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.model-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.model-card:last-child {
+  margin-bottom: 0;
+}
+
+.model-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(138, 108, 255, 0.1) 0%, rgba(138, 108, 255, 0.05) 100%);
+  border-radius: 12px;
+  color: var(--primary-color);
+}
+
+.model-details h4 {
+  margin: 0 0 5px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.model-details p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--secondary-color);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .config-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .tab-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .instruction-textarea {
+    min-height: 250px;
+    padding: 15px;
+  }
+  
+  .model-card {
+    padding: 15px;
+  }
 }
