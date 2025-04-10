@@ -716,9 +716,16 @@ input:checked + .slider:before {
 /* Buttons */
 .action-container {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
+  justify-content: space-between;
+  margin-top: 25px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+  .action-container {
+    flex-direction: column;
+  }
 }
 
 .action-button {
@@ -778,6 +785,15 @@ input:checked + .slider:before {
   background-color: #f8f9fa;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   transform: translateY(-1px);
+}
+
+.action-button.primary.copied {
+  background: var(--success-color);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.action-button.primary.copied:hover {
+  background: #27ae60;
 }
 
 /* Loading spinner */

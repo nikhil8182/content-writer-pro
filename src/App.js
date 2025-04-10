@@ -18,17 +18,25 @@ function App() {
   const [contentType, setContentType] = useState('');
   const [generatedOutline, setGeneratedOutline] = useState('');
   const [finalContent, setFinalContent] = useState('');
-  const [isScheduling, setIsScheduling] = useState(false);
-  const [scheduledDate, setScheduledDate] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKeyError, setApiKeyError] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [copySuccess, setCopySuccess] = useState(false);
 
-  // Load model preferences only - removed system instruction loading
+  // Load model preferences only
   useEffect(() => {
     const savedModel = localStorage.getItem('openai_model') || process.env.REACT_APP_DEFAULT_AI_MODEL || 'gpt-4';
   }, []);
+
+  // Reset copy status after 2 seconds
+  useEffect(() => {
+    if (copySuccess) {
+      const timer = setTimeout(() => {
+        setCopySuccess(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copySuccess]);
 
   // Content type presets
   const contentPresets = [
@@ -95,18 +103,17 @@ function App() {
 
   const selectPlatform = (platform) => {
     setCurrentPlatform(platform);
-    // Skip step 3, go directly to editor (Step 3 in new flow)
     setCurrentStep(3);
   };
 
-  const handleScheduleToggle = () => {
-    setIsScheduling(!isScheduling);
-  };
-
-  const handlePost = () => {
-    // In a real app, this would handle the actual posting
-    alert(`Content ${isScheduling ? 'scheduled' : 'posted'} to ${currentPlatform}!`);
-    resetWorkflow();
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(finalContent)
+      .then(() => {
+        setCopySuccess(true);
+      })
+      .catch(err => {
+        console.error('Could not copy text: ', err);
+      });
   };
 
   const resetWorkflow = () => {
@@ -116,9 +123,6 @@ function App() {
     setGeneratedOutline('');
     setFinalContent('');
     setCurrentPlatform('');
-    setIsScheduling(false);
-    setScheduledDate('');
-    setScheduledTime('');
     setApiKeyError('');
   };
 
@@ -165,13 +169,13 @@ function App() {
               <div className="progress-bar">
                 <div 
                   className="progress-fill" 
-                  style={{width: `${(currentStep / 4) * 100}%`}}
+                  style={{width: `${(currentStep / 3) * 100}%`}}
                 ></div>
               </div>
               <div className="step-labels">
                 <span className={currentStep >= 1 ? 'active' : ''}>Describe</span>
                 <span className={currentStep >= 2 ? 'active' : ''}>Outline</span>
-                <span className={currentStep >= 4 ? 'active' : ''}>Publish</span>
+                <span className={currentStep >= 3 ? 'active' : ''}>Edit</span>
               </div>
             </div>
           )}
@@ -188,7 +192,7 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">1</div>
-              <div className="step-label">Step 1 of 4: Describe Your Content</div>
+              <div className="step-label">Step 1 of 3: Describe Your Content</div>
             </div>
             <h2>What do you want to create?</h2>
             
@@ -233,7 +237,7 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">2</div>
-              <div className="step-label">Step 2 of 4: Choose Platform & Review Outline</div>
+              <div className="step-label">Step 2 of 3: Choose Platform & Review Outline</div>
             </div>
             <h2>AI-Generated Outline</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
@@ -274,7 +278,7 @@ function App() {
           <div className="content-card">
             <div className="step-indicator">
               <div className="step-number">3</div>
-              <div className="step-label">Step 3 of 4: Edit Content</div>
+              <div className="step-label">Step 3 of 3: Edit & Copy Content</div>
             </div>
             <h2>Optimize for {currentPlatform}</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
@@ -287,27 +291,8 @@ function App() {
               onContentChange={(newContent) => setFinalContent(newContent)}
             />
             
-            <div className="action-container">
-              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
-                Back
-              </button>
-              <button className="action-button primary" onClick={() => setCurrentStep(4)}>
-                Continue to Publish
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 4 && (
-          <div className="content-card">
-            <div className="step-indicator">
-              <div className="step-number">4</div>
-              <div className="step-label">Step 4 of 4: Publish</div>
-            </div>
-            <h2>Publish to {currentPlatform}</h2>
-            
             <div className="preview-container">
-              <h3>Preview</h3>
+              <h3>Final Content Preview</h3>
               <div className="content-preview">
                 {finalContent ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -319,56 +304,23 @@ function App() {
               </div>
             </div>
             
-            <div className="publishing-controls">
-              <div className="toggle-switch">
-                <label className="switch">
-                  <input 
-                    type="checkbox" 
-                    checked={isScheduling}
-                    onChange={handleScheduleToggle}
-                  />
-                  <span className="slider round"></span>
-                </label>
-                <span>Schedule for later</span>
-              </div>
-              
-              {isScheduling && (
-                <div className="schedule-form">
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Date</label>
-                      <input 
-                        type="date" 
-                        value={scheduledDate}
-                        onChange={(e) => setScheduledDate(e.target.value)}
-                        className="date-input"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Time</label>
-                      <input 
-                        type="time" 
-                        value={scheduledTime}
-                        onChange={(e) => setScheduledTime(e.target.value)}
-                        className="time-input"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="action-container">
-                <button className="action-button secondary" onClick={() => setCurrentStep(3)}>
-                  Back
-                </button>
-                <button 
-                  className="action-button primary"
-                  onClick={handlePost}
-                  disabled={isScheduling && (!scheduledDate || !scheduledTime)}
-                >
-                  {isScheduling ? 'Schedule' : 'Post Now'}
-                </button>
-              </div>
+            <div className="action-container">
+              <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
+                Back
+              </button>
+              <button 
+                className="action-button primary"
+                onClick={copyToClipboard}
+                disabled={!finalContent}
+              >
+                {copySuccess ? '✓ Copied!' : 'Copy to Clipboard'}
+              </button>
+              <button 
+                className="action-button secondary"
+                onClick={resetWorkflow}
+              >
+                Create New Content
+              </button>
             </div>
           </div>
         )}
