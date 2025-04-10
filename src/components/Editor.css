@@ -99,15 +99,18 @@
 }
 
 .char-counter {
-  padding: 4px 8px;
+  padding: 6px 10px;
   background-color: white;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--secondary-color);
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-left: 10px;
+  transition: all 0.3s ease;
 }
 
 .char-counter .over-limit {
@@ -115,8 +118,38 @@
   font-weight: 600;
 }
 
+.char-counter.near-limit {
+  background-color: #fff9c4;
+  border-color: #ffd54f;
+}
+
+.char-counter.over-limit {
+  background-color: #ffebee;
+  border-color: #ef5350;
+  animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 .char-counter span {
   margin: 0 2px;
+}
+
+/* Make the character limit more prominent on mobile */
+@media (max-width: 768px) {
+  .char-counter {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    padding: 8px 12px;
+    font-size: 14px;
+  }
 }
 
 .editor-main {

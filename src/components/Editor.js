@@ -29,6 +29,17 @@ function Editor({
   const platformLimits = OpenAIService.PLATFORM_LIMITS;
   const currentLimit = platformLimits[platform] || platformLimits.default;
 
+  // Calculate warning level based on percentage of limit used
+  const getCharCounterClass = () => {
+    const percentUsed = (charCount / currentLimit) * 100;
+    if (charCount > currentLimit) {
+      return 'over-limit';
+    } else if (percentUsed >= 85) {
+      return 'near-limit';
+    }
+    return '';
+  };
+
   // Pre-populate editor with initial outline if provided
   useEffect(() => {
     if (initialOutline && !content) {
@@ -116,7 +127,7 @@ function Editor({
         >
           {isPreviewMode ? 'Edit' : 'Preview'}
         </button>
-        <div className="char-counter">
+        <div className={`char-counter ${getCharCounterClass()}`}>
           <span className={charCount > currentLimit ? 'over-limit' : ''}>
             {charCount}
           </span>

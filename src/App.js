@@ -2,6 +2,7 @@ import './App.css';
 import Editor from './components/Editor';
 import ConfigPage from './components/ConfigPage';
 import ThemeSwitcher from './components/ThemeSwitcher';
+import CharCounterTest from './components/CharCounterTest';
 import { getOutlineInstruction } from './components/ConfigPage';
 import { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from './contexts/ThemeContext';
@@ -22,6 +23,7 @@ function App() {
   const [apiKeyError, setApiKeyError] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showTest, setShowTest] = useState(false);
 
   // Load model preferences only
   useEffect(() => {
@@ -150,21 +152,34 @@ function App() {
               onClick={() => {
                 setCurrentView('home');
                 resetWorkflow();
+                setShowTest(false);
               }}>
               <span className="nav-icon">📝</span>
               <span className="nav-label">Write</span>
             </button>
             <button 
               className={currentView === 'config' ? 'nav-item active' : 'nav-item'} 
-              onClick={() => setCurrentView('config')}>
+              onClick={() => {
+                setCurrentView('config');
+                setShowTest(false);
+              }}>
               <span className="nav-icon">⚙️</span>
               <span className="nav-label">Settings</span>
+            </button>
+            <button 
+              className={showTest ? 'nav-item active' : 'nav-item'} 
+              onClick={() => {
+                setShowTest(true);
+                setCurrentView('');
+              }}>
+              <span className="nav-icon">📊</span>
+              <span className="nav-label">Test Counter</span>
             </button>
           </nav>
           
           <ThemeSwitcher />
           
-          {currentView === 'home' && (
+          {currentView === 'home' && !showTest && (
             <div className="workflow-progress">
               <div className="progress-bar">
                 <div 
@@ -335,6 +350,10 @@ function App() {
 
   // Get content for the current view
   const renderContent = () => {
+    if (showTest) {
+      return <CharCounterTest />;
+    }
+    
     switch(currentView) {
       case 'home':
         return renderHomeView();
