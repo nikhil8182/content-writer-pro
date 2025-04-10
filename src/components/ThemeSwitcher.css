@@ -1,0 +1,35 @@
+.theme-switcher {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.theme-toggle-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle-button:hover {
+  background: var(--bg-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Closed sidebar state */
+.sidebar-closed .theme-toggle-button span {
+  display: none;
+}
+
+.sidebar-closed .theme-toggle-button {
+  padding: 8px;
+  justify-content: center;
+} 

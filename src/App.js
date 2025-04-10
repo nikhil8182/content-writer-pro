@@ -1,13 +1,16 @@
 import './App.css';
 import Editor from './components/Editor';
 import ConfigPage from './components/ConfigPage';
+import ThemeSwitcher from './components/ThemeSwitcher';
 import { getOutlineInstruction } from './components/ConfigPage';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { ThemeContext } from './contexts/ThemeContext';
 import OpenAIService from './services/openai';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 function App() {
+  const { theme } = useContext(ThemeContext);
   const [currentView, setCurrentView] = useState('home');
   const [currentStep, setCurrentStep] = useState(1);
   const [currentPlatform, setCurrentPlatform] = useState('');
@@ -137,7 +140,7 @@ function App() {
 
   const renderSidebar = () => {
     return (
-      <div className={`app-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
+      <div className={`app-sidebar ${sidebarOpen ? 'open' : 'closed'} ${theme === 'dark' ? 'dark' : 'light'}`}>
         <div className="sidebar-header">
           <div className="logo">
             <span className="logo-icon">✍️</span>
@@ -166,6 +169,8 @@ function App() {
               <span className="nav-label">Settings</span>
             </button>
           </nav>
+          
+          <ThemeSwitcher />
           
           {currentView === 'home' && (
             <div className="workflow-progress">
@@ -404,7 +409,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className={`App ${theme}`}>
       {renderSidebar()}
       
       <div className={`app-main ${sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'}`}>
