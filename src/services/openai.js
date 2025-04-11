@@ -91,9 +91,48 @@ export const optimizeForPlatform = async (content, platform, contentType, config
   return data.optimizedContent; // Assuming backend returns { "optimizedContent": "..." }
 };
 
+/**
+ * Get AI suggestions to improve content
+ * 
+ * @param {string} content - The current content to analyze
+ * @param {string} platform - The target platform
+ * @returns {Promise<string>} - Improved content suggestion
+ */
+export const getSuggestion = async (content, platform) => {
+  // Crafting a prompt to get suggestions that respect the platform's constraints
+  const body = { 
+    content,
+    platform,
+    mode: "improve",
+    customSystemInstruction: `You are an expert content improvement assistant. 
+    Review this content targeting ${platform} and suggest improvements to:
+    1. Boost engagement and clarity
+    2. Optimize for the ${platform} platform
+    3. Make it more compelling while maintaining the original message
+    4. Fix any grammatical or stylistic issues
+    5. Stay within the platform's character limits`
+  };
+  
+  try {
+    const data = await postToBackend('/content-suggestion', body);
+    return data.suggestion;
+  } catch (error) {
+    // If the backend endpoint doesn't exist yet, fallback to optimize-content
+    console.warn("Falling back to optimize-content endpoint for suggestions");
+    const fallbackData = await postToBackend('/optimize-content', {
+      content,
+      platform,
+      contentType: "improvement",
+      base_system_instruction: body.customSystemInstruction
+    });
+    return fallbackData.optimizedContent;
+  }
+};
+
 // Export necessary functions and constants
 export default {
   generateOutline,
   optimizeForPlatform,
+  getSuggestion,
   PLATFORM_LIMITS
 }; 

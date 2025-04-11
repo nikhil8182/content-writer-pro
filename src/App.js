@@ -296,19 +296,6 @@ function App() {
               onContentChange={(newContent) => setFinalContent(newContent)}
             />
             
-            <div className="preview-container">
-              <h3>Final Content Preview</h3>
-              <div className="content-preview">
-                {finalContent ? (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {finalContent}
-                  </ReactMarkdown>
-                ) : (
-                  <p>Your optimized content will appear here.</p>
-                )}
-              </div>
-            </div>
-            
             <div className="action-container">
               <button className="action-button secondary" onClick={() => setCurrentStep(2)}>
                 Back

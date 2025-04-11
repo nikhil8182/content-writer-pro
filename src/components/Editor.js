@@ -17,6 +17,8 @@ function Editor({
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState('');
   
   const handleContentChange = (e) => {
     const newContent = e.target.value;
@@ -77,9 +79,12 @@ function Editor({
       // Get the instruction from ConfigPage
       const configPageInstruction = getOptimizeInstruction();
       
+      // Use current content as input if no contentDescription is available
+      const inputContent = contentDescription || content || "Generate new content";
+      
       // Using optimizeForPlatform as the standard way to generate/optimize
       const generatedContent = await OpenAIService.optimizeForPlatform(
-        contentDescription, // Using description as input for generation/optimization
+        inputContent,
         platform,
         contentType,
         configPageInstruction // Pass the ConfigPage instruction
@@ -105,32 +110,65 @@ function Editor({
         return [
           `Keep it under ${currentLimit} characters`,
           'Use 1-2 relevant hashtags',
-          'Include a clear call to action'
+          'Include a clear call to action',
+          'Engage with a question',
+          'Use emojis sparingly'
         ];
       case 'linkedin':
         return [
           'Professional tone works best',
           'Include industry insights',
-          'End with a question to drive engagement'
+          'End with a question to drive engagement',
+          'Add relevant stats or data points',
+          'Format with bullets for readability'
         ];
       case 'instagram':
         return [
           'Add relevant context for images',
           'Use concise, engaging language',
-          'Maintain brand voice consistency'
+          'Maintain brand voice consistency',
+          'Strategic hashtag placement',
+          'Strong emotional connection'
         ];
       case 'blog':
         return [
           'Include a compelling headline',
           'Structure with headers for scanability',
-          'Aim for 1000+ words for SEO'
+          'Aim for 1000+ words for SEO',
+          'Include internal and external links',
+          'Add visual elements'
         ];
       default:
         return [
           'Keep content clear and concise',
           'Use appropriate tone for your audience',
-          'Include a call to action'
+          'Include a call to action',
+          'Proofread for errors',
+          'Test readability'
         ];
+    }
+  };
+
+  // Get AI to suggest improvements
+  const requestAISuggestion = async () => {
+    if (!content) return;
+    
+    setShowAIAssistant(true);
+    try {
+      const suggestion = await OpenAIService.getSuggestion(content, platform);
+      setAiSuggestion(suggestion);
+    } catch (error) {
+      setAiSuggestion("Sorry, I couldn't generate a suggestion right now. Please try again later.");
+    }
+  };
+
+  // Apply AI suggestion
+  const applyAISuggestion = () => {
+    if (aiSuggestion) {
+      setContent(aiSuggestion);
+      onContentChange(aiSuggestion);
+      setShowAIAssistant(false);
+      setAiSuggestion('');
     }
   };
   
@@ -165,6 +203,13 @@ function Editor({
         </div>
         
         <div className="editor-actions">
+          <button
+            className="ai-assist-btn"
+            onClick={requestAISuggestion}
+            disabled={!content || isGeneratingAI}
+            title="Get AI suggestions to improve your content">
+            <span>✨</span> Improve
+          </button>
           <button 
             className={`view-toggle-btn ${isPreviewMode ? 'active' : ''}`}
             onClick={togglePreviewMode}
@@ -200,26 +245,32 @@ function Editor({
         )}
       </div>
       
-      <div className="editor-footer">
-        <div className="ai-actions">
-          <button 
-            className="action-button primary generate-button"
-            onClick={generatePlatformContent}
-            disabled={isGeneratingAI || !contentDescription}
-          >
-            {isGeneratingAI ? 'Generating...' : 'Regenerate with AI'}
-          </button>
+      {showAIAssistant && (
+        <div className="ai-assistant-panel">
+          <div className="ai-assistant-header">
+            <h3>✨ AI Suggestion</h3>
+            <button className="close-btn" onClick={() => setShowAIAssistant(false)}>×</button>
+          </div>
+          <div className="ai-assistant-content">
+            {aiSuggestion ? (
+              <div className="ai-suggestion">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {aiSuggestion}
+                </ReactMarkdown>
+                <div className="ai-suggestion-actions">
+                  <button onClick={applyAISuggestion} className="action-button primary">Apply Suggestion</button>
+                  <button onClick={() => setShowAIAssistant(false)} className="action-button secondary">Dismiss</button>
+                </div>
+              </div>
+            ) : (
+              <div className="ai-loading">
+                <div className="loading-spinner dark"></div>
+                <p>Analyzing your content...</p>
+              </div>
+            )}
+          </div>
         </div>
-        
-        <div className="platform-tips-compact">
-          <h3>Tips for {platform.charAt(0).toUpperCase() + platform.slice(1)}</h3>
-          <ul>
-            {getPlatformTips().map((tip, index) => (
-              <li key={index}>{tip}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
