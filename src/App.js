@@ -246,9 +246,12 @@ function App() {
             
             <div className="outline-container">
               <div className="outline-content">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {generatedOutline}
-                </ReactMarkdown>
+                <textarea
+                  value={generatedOutline}
+                  onChange={(e) => setGeneratedOutline(e.target.value)}
+                  className="outline-textarea"
+                  placeholder="Your outline will appear here..."
+                />
               </div>
             </div>
             
