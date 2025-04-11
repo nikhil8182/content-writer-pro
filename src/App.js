@@ -2,7 +2,7 @@ import './App.css';
 import Editor from './components/Editor';
 import ConfigPage from './components/ConfigPage';
 import ThemeSwitcher from './components/ThemeSwitcher';
-import { getOutlineInstruction } from './components/ConfigPage';
+import { getOutlineInstruction, getOptimizeInstruction } from './components/ConfigPage';
 import { useState, useEffect, useContext } from 'react';
 import { ThemeContext } from './contexts/ThemeContext';
 import OpenAIService from './services/openai';
@@ -18,10 +18,13 @@ function App() {
   const [contentType, setContentType] = useState('');
   const [generatedOutline, setGeneratedOutline] = useState('');
   const [finalContent, setFinalContent] = useState('');
+  const [optimizedContentMap, setOptimizedContentMap] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPlatformSwitching, setIsPlatformSwitching] = useState(false);
   const [apiKeyError, setApiKeyError] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [mainEditorContent, setMainEditorContent] = useState('');
 
   // Load model preferences only
   useEffect(() => {
@@ -37,6 +40,25 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [copySuccess]);
+
+  // Add effect to keep finalContent in sync with mainEditorContent for backward compatibility
+  useEffect(() => {
+    if (mainEditorContent !== finalContent) {
+      setFinalContent(mainEditorContent);
+    }
+  }, [mainEditorContent, finalContent]);
+
+  // Effect to update UI when optimization results come in - ensure no infinite loops
+  useEffect(() => {
+    // When in step 3 and platform content map changes, check if we need to update UI
+    if (currentStep === 3 && currentPlatform) {
+      const platformData = optimizedContentMap[currentPlatform];
+      if (platformData && !platformData.isLoading && platformData.content && !mainEditorContent) {
+        // Update main editor content if it's empty and we have optimized content
+        setMainEditorContent(platformData.content);
+      }
+    }
+  }, [optimizedContentMap, currentStep, currentPlatform, mainEditorContent]);
 
   // Content type presets
   const contentPresets = [
@@ -102,12 +124,82 @@ function App() {
   };
 
   const selectPlatform = (platform) => {
+    // Store current content if moving from step 3
+    if (currentStep === 3 && mainEditorContent) {
+      setOptimizedContentMap(prev => ({
+        ...prev,
+        [currentPlatform]: { 
+          content: mainEditorContent, 
+          isLoading: false 
+        }
+      }));
+    }
+    
     setCurrentPlatform(platform);
+    
+    // Check if we already have optimized content for this platform
+    const platformData = optimizedContentMap[platform];
+    
+    if (!platformData) {
+      // If no optimized content exists, trigger optimization
+      setMainEditorContent(''); // Clear main editor while loading
+      
+      // Update UI to show loading state
+      setOptimizedContentMap(prev => ({
+        ...prev,
+        [platform]: { 
+          content: '', 
+          isLoading: true 
+        }
+      }));
+      
+      // Get the instruction from ConfigPage
+      const configPageInstruction = getOptimizeInstruction();
+      
+      // For the primary platform, call the API directly and update main editor content
+      // This ensures the primary platform is optimized when going from step 2 to step 3
+      OpenAIService.optimizeForPlatform(
+        generatedOutline, 
+        platform,
+        contentType,
+        configPageInstruction
+      ).then(optimizedContent => {
+        // Update both the main editor content and the optimized content map
+        setMainEditorContent(optimizedContent);
+        
+        setOptimizedContentMap(prev => ({
+          ...prev,
+          [platform]: {
+            content: optimizedContent,
+            isLoading: false
+          }
+        }));
+      }).catch(error => {
+        console.error(`Error optimizing for ${platform}:`, error);
+        setApiKeyError(`Failed to optimize for ${platform}. ${error.message || 'API error'}`);
+        
+        // Still update the map with the error
+        setOptimizedContentMap(prev => ({
+          ...prev,
+          [platform]: {
+            content: `Error: ${error.message || 'Failed to optimize content'}`,
+            isLoading: false
+          }
+        }));
+      });
+    } else if (!platformData.isLoading) {
+      // If we have content and it's not loading, use it
+      setMainEditorContent(platformData.content);
+    } else {
+      // Content is loading, clear the editor temporarily
+      setMainEditorContent('');
+    }
+    
     setCurrentStep(3);
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(finalContent)
+  const copyToClipboard = (content) => {
+    navigator.clipboard.writeText(content)
       .then(() => {
         setCopySuccess(true);
       })
@@ -121,8 +213,10 @@ function App() {
     setContentDescription('');
     setContentType('');
     setGeneratedOutline('');
+    setMainEditorContent('');
     setFinalContent('');
     setCurrentPlatform('');
+    setOptimizedContentMap({});
     setApiKeyError('');
   };
 
@@ -288,12 +382,27 @@ function App() {
             <h2>Optimize for {currentPlatform}</h2>
             {apiKeyError && <div className="api-error-message">{apiKeyError}</div>}
             
+            {optimizedContentMap[currentPlatform]?.isLoading && (
+              <div className="platform-switching-indicator">
+                <div className="loading-spinner"></div>
+                <p>Optimizing initial content for {currentPlatform}...</p>
+              </div>
+            )}
+            
             <Editor 
               platform={currentPlatform} 
               contentDescription={contentDescription}
               contentType={contentType}
-              initialOutline={generatedOutline}
-              onContentChange={(newContent) => setFinalContent(newContent)}
+              value={mainEditorContent || ''}
+              onContentChange={(newContent) => {
+                setMainEditorContent(newContent);
+                if (currentPlatform && optimizedContentMap[currentPlatform]) {
+                  setOptimizedContentMap(prev => ({
+                    ...prev,
+                    [currentPlatform]: { ...prev[currentPlatform], content: newContent }
+                  }));
+                }
+              }}
             />
             
             <div className="action-container">
@@ -302,10 +411,10 @@ function App() {
               </button>
               <button 
                 className="action-button primary"
-                onClick={copyToClipboard}
-                disabled={!finalContent}
+                onClick={() => copyToClipboard(mainEditorContent)}
+                disabled={!mainEditorContent || optimizedContentMap[currentPlatform]?.isLoading}
               >
-                {copySuccess ? '✓ Copied!' : 'Copy to Clipboard'}
+                {copySuccess ? '✓ Copied!' : `Copy ${currentPlatform} Content`}
               </button>
               <button 
                 className="action-button secondary"
@@ -314,6 +423,80 @@ function App() {
                 Create New Content
               </button>
             </div>
+
+            {/* Section for optimizing for OTHER platforms */}
+            <div className="other-platforms-section">
+              <h3>Also optimize for:</h3>
+              <div className="platform-grid">
+                {platformOptions
+                  .filter(platform => platform.id !== currentPlatform)
+                  .map(platform => {
+                    const platformData = optimizedContentMap[platform.id];
+                    const isLoading = platformData?.isLoading;
+                    const isOptimized = platformData && !isLoading && platformData.content;
+                    
+                    return (
+                      <button 
+                        key={platform.id}
+                        className={`platform-card ${isOptimized ? 'optimized' : ''} ${isLoading ? 'loading' : ''}`}
+                        onClick={() => optimizeForAdditionalPlatform(platform.id)}
+                        disabled={isLoading}
+                        title={isLoading ? `Optimizing for ${platform.label}...` : `Optimize for ${platform.label}`}
+                      >
+                        {isLoading ? (
+                          <div className="loading-spinner dark"></div> // Use dark spinner for visibility
+                        ) : (
+                          <div className="platform-icon">{platform.icon}</div>
+                        )}
+                        <div className="platform-name">{platform.label}</div>
+                        {isOptimized && !isLoading && (
+                          <div className="optimized-badge" title="Optimized">✓</div>
+                        )}
+                      </button>
+                    )
+                  })}
+              </div>
+            </div>
+
+            {/* Section to display results for OTHER platforms */}
+            <div className="optimized-results-section">
+              {platformOptions
+                .filter(platform => platform.id !== currentPlatform && optimizedContentMap[platform.id])
+                .map(platform => {
+                  const platformData = optimizedContentMap[platform.id];
+                  // Only render if content exists and it's not loading
+                  if (!platformData || platformData.isLoading || !platformData.content) return null; 
+                  
+                  // Check if content indicates an error
+                  const isError = typeof platformData.content === 'string' && platformData.content.startsWith('Error:');
+
+                  return (
+                    <div key={platform.id} className={`optimized-result-card ${isError ? 'error' : ''}`}>
+                      <div className="result-header">
+                        <h3>{platform.label} Content</h3>
+                        {!isError && (
+                          <button 
+                            className="action-button secondary small-button"
+                            onClick={() => copyToClipboard(platformData.content)}
+                          >
+                            Copy
+                          </button>
+                        )}
+                      </div>
+                      <div className="result-content markdown-preview">
+                        {isError ? (
+                           <p className="error-text">⚠️ {platformData.content}</p>
+                        ) : (
+                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                             {platformData.content}
+                           </ReactMarkdown>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+            
           </div>
         )}
       </div>
@@ -323,6 +506,51 @@ function App() {
   // Config view render function
   const renderConfigView = () => {
     return <ConfigPage />;
+  };
+
+  // Add the optimizeForAdditionalPlatform function
+  const optimizeForAdditionalPlatform = async (platformId) => {
+    // Update the map to show loading state for this platform
+    setOptimizedContentMap(prev => ({
+      ...prev,
+      [platformId]: { 
+        ...(prev[platformId] || {}), // Keep existing data if any
+        content: prev[platformId]?.content || '', 
+        isLoading: true 
+      }
+    }));
+
+    try {
+      // Get the instruction from ConfigPage
+      const configPageInstruction = getOptimizeInstruction();
+      
+      // Call the API to optimize the content for this platform
+      const optimizedContent = await OpenAIService.optimizeForPlatform(
+        generatedOutline, // Use the outline as the base content to optimize
+        platformId,
+        contentType,
+        configPageInstruction
+      );
+
+      // Update the map with the optimized content
+      setOptimizedContentMap(prev => ({
+        ...prev,
+        [platformId]: {
+          content: optimizedContent,
+          isLoading: false
+        }
+      }));
+    } catch (error) {
+      console.error(`Error optimizing for ${platformId}:`, error);
+      // Update the map with the error
+      setOptimizedContentMap(prev => ({
+        ...prev,
+        [platformId]: {
+          content: `Error: ${error.message || 'Failed to optimize content'}`,
+          isLoading: false
+        }
+      }));
+    }
   };
 
   // Get content for the current view
